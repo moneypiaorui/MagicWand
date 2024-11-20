@@ -1,0 +1,52 @@
+############################################
+# Syntax Coloring Map For FlashStorage_SAMD
+############################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+FlashStorageClass_RTL8720 KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+writeByte KEYWORD2
+readByte KEYWORD2
+updateByte KEYWORD2
+writeWord KEYWORD2
+readWord KEYWORD2
+updateWord KEYWORD2
+get KEYWORD2
+put KEYWORD2
+readFlashToBuffer KEYWORD2
+isValid KEYWORD2
+commit KEYWORD2
+length	KEYWORD2
+setCommitASAP KEYWORD2
+getCommitASAP KEYWORD2
+eraseFlashSector  KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+LATEST_RTL8720_FIRMWARE LITERAL1
+
+FLASH_STORAGE_RTL8720_VERSION  LITERAL1
+FLASH_STORAGE_RTL8720_VERSION_MAJOR  LITERAL1
+FLASH_STORAGE_RTL8720_VERSION_MINOR  LITERAL1
+FLASH_STORAGE_RTL8720_VERSION_PATCH  LITERAL1
+FLASH_STORAGE_RTL8720_VERSION_INT  LITERAL1
+
+BOARD_TYPE  LITERAL1
+BOARD_NAME  LITERAL1
+
+FLASH_MEMORY_APP_BASE LITERAL1
+FLASH_SECTOR_SIZE LITERAL1
+FLASH_STORAGE_RTL8720_VERSION LITERAL1
+
+FLASH_MARK  LITERAL1
+FLASH_SP  LITERAL1
+

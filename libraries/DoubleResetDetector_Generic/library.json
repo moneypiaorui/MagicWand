@@ -1,0 +1,58 @@
+{
+  "name": "DoubleResetDetector_Generic",
+  "version": "1.8.1",
+  "keywords": "device, control, eeprom, flashstorage-samd, flashstorage-stm32, nano-rp2040-connect, nano-33-ble, teensy, sam-due, samd, stm32, nRF52, double-reset, flashstorage, mbed-portenta, portenta-h7, portentah7, dueflashstorage, littlefs, spiffs, flashstorage-rtl8720, mbed, rpi-pico, rp2040, raspberry-pico, multi-reset, reset, detector, data",
+  "description": "Library to detect a double reset, using EEPROM, DueFlashStorage, FlashStorage_SAMD, FlashStorage_RTL8720, FlashStorage_STM32 or LittleFS/InternalFS. For AVR, Teensy, SAM DUE, SAMD, STM32F/L/H/G/WB/MP1, nRF52, RP2040-based Nano_RP2040_Connect, RASPBERRY_PI_PICO, RTL8720DN, MBED nRF52840-based Nano_33_BLE, Portenta_H7, etc. boards. Now using efficient FlashStorage_STM32 library and supporting new RP2040-based Nano_RP2040_Connect, Portenta_H7, RASPBERRY_PI_PICO and STM32 core v2.0.0",
+  "authors":
+  {
+    "name":  "Khoi Hoang",
+    "url":   "https://github.com/khoih-prog",
+    "maintainer": true
+  },    
+  "repository":
+  {
+      "type": "git",
+      "url": "https://github.com/khoih-prog/DoubleResetDetector_Generic"
+  },
+  "homepage": "https://github.com/khoih-prog",
+  "export": {
+    "exclude": [
+      "linux",
+      "extras",
+      "tests"
+    ]
+  },
+  "dependencies": 
+  [
+    {
+      "owner": "khoih-prog",
+      "name": "FlashStorage_STM32",
+      "version": ">=1.2.0",
+      "platforms": ["ststm32"]
+    },
+    {
+      "owner": "khoih-prog",
+      "name": "FlashStorage_STM32F1",
+      "version": ">=1.1.0",
+      "platforms": ["ststm32"]
+    },
+    {
+      "owner": "khoih-prog",
+      "name": "FlashStorage_SAMD",
+      "version": "^1.3.2",
+      "platforms": ["*"]
+    },
+    {
+      "owner": "khoih-prog",
+      "name": "FlashStorage_RTL8720",
+      "version": "^1.1.0",
+      "platforms": "*"
+    }
+  ],
+  "license": "MIT",
+  "frameworks": "*",
+  "platforms": "*",
+  "examples": "examples/*/*/*.ino",
+  "headers": ["DoubleResetDetector_Generic.h"]
+  
+}

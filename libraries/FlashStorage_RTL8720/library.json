@@ -1,0 +1,31 @@
+{
+    "name": "FlashStorage_RTL8720",
+    "version": "1.1.0",
+    "keywords": "storage, data, flash, flashstorage, flash-storage, RTL8720DN, RTL8722DM, RTM8722CSM, realtek, amebad-core",
+    "description": "The FlashStorage_RTL8720 library aims to provide a convenient way to store and retrieve user's data using the non-volatile flash memory of Realtek RTL8720DN, RTL8722DM, RTM8722CSM, etc. It's using the buffered read and write to minimize the access to Flash. It now supports writing and reading the whole object, not just byte-and-word.",
+    "authors": [
+    {
+      "name":  "Khoi Hoang",
+      "url":   "https://github.com/khoih-prog",
+      "email": "khoih.prog@gmail.com",
+      "maintainer": true
+    }
+  ],
+    "repository":
+    {
+        "type": "git",
+        "url": "https://github.com/khoih-prog/FlashStorage_RTL8720"
+    },
+    "homepage": "https://github.com/khoih-prog/FlashStorage_RTL8720",
+    "export": {
+      "exclude": [
+        "linux",
+        "extras",
+        "tests"
+      ]
+    },
+    "license": "MIT",
+    "frameworks": "arduino",
+    "platforms": "AmebaD",
+    "headers": ["FlashStorage_RTL8720.h"]
+}
