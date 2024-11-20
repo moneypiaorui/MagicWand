@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPU6050 Data Visualization</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="container mt-4">
+        <h1 class="text-center">MPU6050 Data Visualization</h1>
+        <canvas id="myChart" width="400" height="200"></canvas>
+        <div class="d-flex justify-content-center mt-3">
+
+            <select id="historySelect" class="form-control mx-2" style="width: 200px;"></select>
+            <button id="prevButton" class="btn btn-primary mx-1">←</button>
+            <button id="nextButton" class="btn btn-primary mx-1">→</button>
+            <button id="deleteButton" class="btn btn-danger mx-1">删除</button>
+            <button id="exportButton" class="btn btn-success mx-1">导出</button>
+        </div>
+        <div class="d-flex justify-content-center mt-3">
+            <input type="file" id="fileInput" class="form-control mx-2" accept=".csv" style="width: auto;" />
+            <button id="importButton" class="btn btn-primary mx-1">导入数据</button>
+        </div>
+
+    </div>
+    <script>
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Acceleration (Ax)',
+                    data: [],
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }, {
+                    label: 'Acceleration (Ay)',
+                    data: [],
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }, {
+                    label: 'Acceleration (Az)',
+                    data: [],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }, {
+                    label: '角速度 (ωx)',
+                    data: [],
+                    borderColor: 'rgba(175, 92, 192, 1)',
+                    borderWidth: 1
+                }, {
+                    label: '角速度 (ωy)',
+                    data: [],
+                    borderColor: 'rgba(5, 192, 192, 1)',
+                    borderWidth: 1
+                }, {
+                    label: '角速度 (ωz)',
+                    data: [],
+                    borderColor: 'rgba(5, 92, 92, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                animation: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // 历史轨迹数据
+        let datas = [];
+        let isRecording = false;
+        // 创建 WebSocket 连接
+        const hostname = window.location.hostname;  // 获取当前网页的主机名
+        const ws = new WebSocket(`ws://${hostname}:8080`);  // 使用主机名作为 WebSocket 连接的地址
+
+        // 更新历史数据选择下拉栏
+        const historySelect = document.getElementById('historySelect');
+        let currentHistoryIndex = -1;
+
+        function updateHistorySelect() {
+            historySelect.innerHTML = ''; // 清空下拉栏
+            datas.forEach((data, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `历史记录${index + 1} : ${data.labels.length}`;
+                historySelect.appendChild(option);
+            });
+            historySelect.value = currentHistoryIndex; // 更新下拉框的值
+        }
+
+        function loadHistoryData(index) {
+            if (index >= 0 && index < datas.length) {
+                chart.data.labels = datas[index].labels;
+                chart.data.datasets.forEach((dataset, i) => {
+                    dataset.data = datas[index].datasets[i];
+                });
+                chart.update();
+            }
+        }
+
+        historySelect.addEventListener('change', function () {
+            currentHistoryIndex = parseInt(this.value);
+            loadHistoryData(currentHistoryIndex);
+        });
+
+        document.getElementById('prevButton').addEventListener('click', function () {
+            if (currentHistoryIndex > 0) {
+                currentHistoryIndex--;
+                historySelect.value = currentHistoryIndex;
+                loadHistoryData(currentHistoryIndex);
+            }
+        });
+
+        document.getElementById('nextButton').addEventListener('click', function () {
+            if (currentHistoryIndex < datas.length - 1) {
+                currentHistoryIndex++;
+                historySelect.value = currentHistoryIndex;
+                loadHistoryData(currentHistoryIndex);
+            }
+        });
+
+        document.getElementById('deleteButton').addEventListener('click', function () {
+            if (currentHistoryIndex >= 0 && currentHistoryIndex < datas.length) {
+                // 删除当前选择的历史记录
+                datas.splice(currentHistoryIndex, 1);
+
+                // 如果删除的是最新的数据，更新当前索引
+                if (currentHistoryIndex >= datas.length) {
+                    currentHistoryIndex = datas.length - 1; // 设置为最后一个索引
+                }
+                updateHistorySelect(); // 更新下拉栏
+
+                // 加载最新的数据（如果有的话）
+                if (currentHistoryIndex >= 0) {
+                    loadHistoryData(currentHistoryIndex);
+                } else {
+                    // 如果没有历史记录，清空图表
+                    chart.data.labels = [];
+                    chart.data.datasets.forEach(dataset => dataset.data = []);
+                    chart.update();
+                }
+            }
+        });
+
+        ws.onmessage = function (event) {
+            if (event.data == "start") {
+                isRecording = true;
+                chart.data.labels = [];
+                chart.data.datasets[0].data = [];
+                chart.data.datasets[1].data = [];
+                chart.data.datasets[2].data = [];
+                chart.data.datasets[3].data = [];
+                chart.data.datasets[4].data = [];
+                chart.data.datasets[5].data = [];
+            } else if (event.data == "end") {
+                isRecording = false;
+                datas.push({
+                    labels: chart.data.labels.slice(),
+                    datasets: chart.data.datasets.map(dataset => dataset.data)
+                });
+                currentHistoryIndex = datas.length - 1; // 最新数据的索引
+                updateHistorySelect(); // 更新下拉栏
+
+            } else {
+                if (isRecording) {
+                    const data = JSON.parse(event.data);
+                    const { ax, ay, az, gx, gy, gz } = data;
+
+                    // 获取当前时间并格式化为分钟和秒
+                    const now = new Date();
+                    const timeLabel = `${now.getMinutes()}:${now.getSeconds()}:${now.getMilliseconds()}`;
+
+                    // 更新图表数据
+                    chart.data.labels.push(Date.now()); // 使用格式化后的时间
+                    chart.data.datasets[0].data.push(ax);
+                    chart.data.datasets[1].data.push(ay);
+                    chart.data.datasets[2].data.push(az);
+                    chart.data.datasets[3].data.push(gx);
+                    chart.data.datasets[4].data.push(gy);
+                    chart.data.datasets[5].data.push(gz);
+
+                    chart.update();
+                }
+            }
+        };
+
+        document.getElementById('importButton').addEventListener('click', function () {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert("请先选择一个文件！");
+                return;
+            }
+            datas = [];
+
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const contents = event.target.result;
+                // 解析 CSV 数据
+                const lines = contents.split('\n');
+
+                // 假设 CSV 的第一行为表头
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].split(',');
+                    if (line.length > 1) {
+                        if (!datas[[line[1]]]) {
+                            datas[[line[1]]] = {
+                                labels: [],
+                                datasets: [[], [], [], [], [], []]
+                            };
+                        }
+                        datas[[line[1]]].labels.push(line[2]);
+                        line.slice(3).forEach((item, index) => {
+                            datas[[line[1]]].datasets[index].push(item);
+                        });
+                    }
+                }
+
+                currentHistoryIndex = datas.length - 1;
+                updateHistorySelect();
+                loadHistoryData(currentHistoryIndex);
+            };
+
+            reader.readAsText(file); // 读取文件内容
+        });
+
+        document.getElementById('exportButton').addEventListener('click', function () {
+            if (datas.length === 0) {
+                alert("没有数据可导出！");
+                return;
+            }
+
+            // 提示用户输入文件名
+            const fileName = prompt("请输入导出文件名（不带扩展名）:", "mpu6050_data");
+            if (!fileName) {
+                alert("文件名不能为空！");
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "tag,id,time,Ax,Ay,Az,gx,gy,gz\n"; // CSV 表头
+
+            datas.forEach((data, dataId) => {
+                const base = data.labels[0];
+                data.labels.forEach((label, index) => {
+                    const row = `1,${dataId},${label - base},${data.datasets[0][index]},${data.datasets[1][index]},${data.datasets[2][index]},${data.datasets[3][index]},${data.datasets[4][index]},${data.datasets[5][index]}`;
+                    csvContent += row + "\n"; // 每行数据
+                });
+            });
+
+            // 创建下载链接
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `${fileName}.csv`); // 使用用户输入的文件名
+            document.body.appendChild(link); // 需要将链接添加到 DOM 中
+
+            link.click(); // 自动点击链接以下载文件
+            document.body.removeChild(link); // 下载后移除链接
+        });
+
+    </script>
+</body>
+
+</html>

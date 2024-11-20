@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP32 Configuration</title>
+  <!-- 引入 Bootstrap 5 CSS -->
+  <link href="./css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- 引入 Font Awesome for icons -->
+  <link href="./css/all.min.css" rel="stylesheet">
+
+  <style>
+    /* 自定义样式 */
+    body {
+      background-color: #f8f9fa;
+      padding-top: 50px;
+    }
+
+    .form-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+
+    .form-container h1 {
+      font-size: 2rem;
+      text-align: center;
+      margin-bottom: 20px;
+      color: #343a40;
+    }
+
+    .form-container input {
+      margin-bottom: 15px;
+    }
+
+    .form-container .btn-primary {
+      width: 100%;
+      font-size: 1.2rem;
+    }
+
+    .button-container {
+      display: flex;
+      justify-content: space-evenly;
+      flex-wrap: wrap;
+    }
+
+    .button-container button {
+      width: 140px;
+      height: 100px;
+      font-size: 18px;
+      margin: 10px;
+      transition: background-color 0.3s ease;
+    }
+
+    .button-container button:hover {
+      background-color: #007bff;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <!-- 配网表单 -->
+    <div class="form-container">
+      <h1>WIFI Configuration</h1>
+      <form id="wifiForm">
+        <div class="mb-3">
+          <label for="ssid" class="form-label">WiFi 名称</label>
+          <input type="text" class="form-control" id="ssid" name="ssid" required>
+        </div>
+        <div class="mb-3">
+          <label for="password" class="form-label">WiFi 密码</label>
+          <input type="password" class="form-control" id="password" name="password" required>
+        </div>
+        <button type="submit" class="btn btn-primary">保存</button>
+      </form>
+    </div>
+
+    <!-- MQTT 配置表单 -->
+    <div class="form-container">
+      <h1>MQTT Configuration</h1>
+      <form id="mqttForm">
+        <div class="mb-3">
+          <label for="mqtt_server" class="form-label">MQTT 服务器（ip或者域名）</label>
+          <input type="text" class="form-control" id="mqtt_server" name="mqtt_server" required>
+        </div>
+        <div class="mb-3">
+          <label for="mqtt_port" class="form-label">MQTT 端口 （默认1883）</label>
+          <input type="text" class="form-control" id="mqtt_port" name="mqtt_port" required value="1883">
+        </div>
+        <div class="mb-3">
+          <label for="mqtt_user" class="form-label">MQTT 用户名 （可选）</label>
+          <input type="text" class="form-control" id="mqtt_user" name="mqtt_user" required value="admin">
+        </div>
+        <div class="mb-3">
+          <label for="mqtt_password" class="form-label">MQTT 密码 （可选）</label>
+          <input type="password" class="form-control" id="mqtt_password" name="mqtt_password" required value="public">
+        </div>
+        <button type="submit" class="btn btn-primary">保存</button>
+      </form>
+    </div>
+
+    <!-- 配置文件上传 -->
+    <div class="form-container">
+      <h1>配置文件上传</h1>
+      <form id="uploadForm" enctype='multipart/form-data'>
+        <input type='file' name='fileToUpload' id='fileToUpload' class="form-control mx-2" required>
+        <button type='submit' class="btn btn-primary">Upload File</button>
+      </form>
+    </div>
+
+    <!-- 按钮容器 -->
+    <div class="button-container">
+      <button class="btn btn-secondary" onclick="location.href='/dashboard.html'">Dashboard</button>
+      <button class="btn btn-secondary" id="restartBtn">重启</button>
+    </div>
+  </div>
+
+  <!-- 引入 Axios -->
+  <script src="./js/axios.min.js"></script>
+
+  <script>
+    // 处理WiFi配置表单提交
+    document.getElementById('wifiForm').addEventListener('submit', function (e) {
+      e.preventDefault();  // 阻止表单默认提交
+
+      const ssid = document.getElementById('ssid').value;
+      const password = document.getElementById('password').value;
+
+      // 创建 URLSearchParams 实例以编码表单数据
+      const formData = new URLSearchParams();
+      formData.append('ssid', ssid);
+      formData.append('password', password);
+
+      // 发送表单数据
+      axios.post('/WIFIconfig', formData)
+        .then(response => {
+          alert('WiFi 配置保存成功');
+        })
+        .catch(error => {
+          alert('WiFi 配置保存失败');
+        });
+    });
+
+    // 处理MQTT配置表单提交
+    document.getElementById('mqttForm').addEventListener('submit', function (e) {
+      e.preventDefault();  // 阻止表单默认提交
+
+      const mqtt_server = document.getElementById('mqtt_server').value;
+      const mqtt_port = document.getElementById('mqtt_port').value;
+      const mqtt_user = document.getElementById('mqtt_user').value;
+      const mqtt_password = document.getElementById('mqtt_password').value;
+
+      // 创建 URLSearchParams 实例以编码表单数据
+      const formData = new URLSearchParams();
+      formData.append('server', mqtt_server);
+      formData.append('port', mqtt_port);
+      formData.append('user', mqtt_user);
+      formData.append('password', mqtt_password);
+
+      // 发送表单数据
+      axios.post('/MQTTconfig', formData)
+        .then(response => {
+          alert('MQTT 配置保存成功');
+        })
+        .catch(error => {
+          alert('MQTT 配置保存失败');
+        });
+    });
+
+    // 处理文件上传
+    document.getElementById('uploadForm').addEventListener('submit', function (e) {
+      e.preventDefault();  // 阻止表单默认提交
+
+      const fileInput = document.getElementById('fileToUpload');
+      const formData = new FormData();
+      formData.append('fileToUpload', fileInput.files[0]);
+
+      // 发送文件数据
+      axios.post('/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+        .then(response => {
+          alert('文件上传成功');
+        })
+        .catch(error => {
+          alert('文件上传失败');
+        });
+    });
+
+    // 重启按钮处理
+    document.getElementById('restartBtn').addEventListener('click', function () {
+      axios.post('/restart')
+        .then(response => {
+          alert('设备正在重启...');
+        })
+        .catch(error => {
+          alert('重启失败');
+        });
+    });
+  </script>
+
+</body>
+
+</html>
