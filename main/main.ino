@@ -6,6 +6,7 @@
 #include <Wire.h>
 #include <Adafruit_MPU6050.h>
 #include <ArduinoJson.h>
+#include <ArduinoOTA.h>
 #include <LittleFS.h>
 #include <vector>
 #include <algorithm>
@@ -192,9 +193,9 @@ void setup() {
 
   // 尝试连接 Wi-Fi
   logfile.println("ssid:" + ssid);
-  logfile.println("password" + password);
+  logfile.println("password:" + password);
   Serial.println("ssid:" + ssid);
-  Serial.println("password" + password);
+  Serial.println("password:" + password);
   WiFi.begin(ssid, password);
   Serial.print("Connecting to WiFi...");
   logfile.print("Connecting to WiFi...");
@@ -232,7 +233,8 @@ void setup() {
   server.on("/MQTTconfig", handleMQTT);
   server.on("/restart", handleRestart);
   server.on("/upload", HTTP_POST, handleFileUpload, handleUploadForm);  // 处理文件上传请求
-  server.onNotFound(handleUserRequet);                                  //处理没有匹配的处理程序的url
+  server.on("/update", HTTP_POST, handleFirmwareUpload, handleUpdateBin);  // 处理 OTA 请求
+  server.onNotFound(handleUserRequet);  //处理没有匹配的处理程序的url
   server.begin();
   Serial.println("HTTP server started");
   logfile.println("HTTP server started");
@@ -257,6 +259,9 @@ void setup() {
 
   // touchAttachInterrupt(TOUCH_PIN, touchCallback, 40);  // 设置触摸中断
 
+  // 启动 OTA 功能
+  ArduinoOTA.begin();
+
   digitalWrite(LED_PIN, 0);
   logfile.close();
 }
@@ -266,6 +271,7 @@ const unsigned long sendInterval = 10;  // 发送间隔（毫秒）
 
 void loop() {
   server.handleClient();
+  ArduinoOTA.handle();
   webSocket.loop();
   if (!mqttClient.connected()) {
     digitalWrite(LED_PIN, 1);
@@ -411,18 +417,18 @@ void sendMPU6050Data() {
 void reconnectMQTT() {
   // 循环直到重新连接
   // while (!mqttClient.connected()) {
-    Serial.print("Connecting to MQTT ");
-    Serial.print(mqttServer.c_str());
-    if (mqttClient.connect("magicWindClient", mqttUser.c_str(), mqttPassword.c_str())) {
-      Serial.println(" connected");
-      publishDeviceConfiguration();
-      mqttClient.subscribe(topic1);
-    } else {
-      Serial.print(" failed, rc=");
-      Serial.print(mqttClient.state());
-      Serial.println(" try again in 0.2 seconds");
-      delay(200);
-    }
+  Serial.print("Connecting to MQTT ");
+  Serial.print(mqttServer.c_str());
+  if (mqttClient.connect("magicWindClient", mqttUser.c_str(), mqttPassword.c_str())) {
+    Serial.println(" connected");
+    publishDeviceConfiguration();
+    mqttClient.subscribe(topic1);
+  } else {
+    Serial.print(" failed, rc=");
+    Serial.print(mqttClient.state());
+    Serial.println(" try again in 0.2 seconds");
+    delay(200);
+  }
   // }
 }
 
@@ -613,6 +619,32 @@ void handleFileUpload() {
   server.send(200, "text/plain", "File uploaded successfully!");
 }
 
+void handleUpdateBin() {
+    HTTPUpload& upload = server.upload();
+    if (upload.status == UPLOAD_FILE_START) {
+      // 开始接收上传的文件
+      Serial.printf("Update Start: %s\n", upload.filename.c_str());
+      if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
+        Update.printError(Serial);
+      }
+    } else if (upload.status == UPLOAD_FILE_WRITE) {
+      // 写入数据
+      if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
+        Update.printError(Serial);
+      }
+    } else if (upload.status == UPLOAD_FILE_END) {
+      // 上传结束，完成固件更新
+      if (Update.end(true)) {
+        Serial.printf("Update Success: %u bytes\n", upload.totalSize);
+        ESP.restart();
+      } else {
+        Update.printError(Serial);
+      }
+    }
+  }
+void handleFirmwareUpload() {
+  server.send(200, "text/plain", "Firmware uploaded successfully!");
+}
 //处理html类请求
 void handleUserRequet() {
   // 获取用户请求网址信息

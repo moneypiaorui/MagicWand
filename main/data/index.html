@@ -116,11 +116,21 @@
       </form>
     </div>
 
+    <!-- OTA更新 -->
+    <div class="form-container">
+      <h1>OTA更新</h1>
+      <form id="updateForm" enctype='multipart/form-data'>
+        <input type='file' name='binToUpload' id='binToUpload' class="form-control mx-2" accept=".bin" required >
+        <button type='submit' class="btn btn-primary">Upload bin</button>
+      </form>
+    </div>
+
     <!-- 按钮容器 -->
     <div class="button-container">
       <button class="btn btn-secondary" onclick="location.href='/dashboard.html'">Dashboard</button>
       <button class="btn btn-secondary" id="restartBtn">重启</button>
     </div>
+    
   </div>
 
   <!-- 引入 Axios -->
@@ -194,6 +204,33 @@
         })
         .catch(error => {
           alert('文件上传失败');
+        });
+    });
+
+    // 处理OTA文件
+    document.getElementById('updateForm').addEventListener('submit', function (e) {
+      e.preventDefault();  // 阻止表单默认提交
+
+      const fileInput = document.getElementById('binToUpload');
+      if (fileInput && !fileInput.files[0].name.endsWith('.bin')) {
+        alert('请提交 .bin 文件!');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('binToUpload', fileInput.files[0]);
+
+      // 发送文件数据
+      axios.post('/update', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+        .then(response => {
+          alert('OTA成功');
+        })
+        .catch(error => {
+          alert('OTA失败');
         });
     });
 
