@@ -13,8 +13,7 @@ from model import ActionClassifier,ActionClassifierCNN
 
 # 加载模型
 def load_model(model_path='models/action_classifier.pth'):
-    model = ActionClassifier([0,20,6],12)
-    model.load_state_dict(torch.load(model_path))
+    model = torch.load(model_path,weights_only=False)
     model.eval()  # 设置为评估模式
     return model
 
@@ -118,7 +117,7 @@ def on_close(ws):
     print("WebSocket 连接已关闭")
 
 # WebSocket 连接地址
-ws_url = "ws://192.168.31.12:8080"  # 替换为您的 ESP32 WebSocket 地址
+ws_url = "ws://192.168.31.18:8080"  # 替换为您的 ESP32 WebSocket 地址
 
 # 创建 WebSocket 应用
 ws = websocket.WebSocketApp(ws_url,

@@ -14,10 +14,10 @@
 String wifi_config_file = "/wifiConfig.txt";
 String mqtt_config_file = "/mqttConfig.txt";
 
-String ssid = "ChainPray";        // 你的Wi-Fi SSID
-String password = "qdd20050629";  // 你的Wi-Fi密码
+String ssid = "";        // 你的Wi-Fi SSID
+String password = "";  // 你的Wi-Fi密码
 
-String mqttServer = "118.178.255.236";
+String mqttServer = "";
 String mqttPort = "1883";
 String mqttUser = "admin";
 String mqttPassword = "public";
@@ -229,9 +229,9 @@ void setup() {
   webSocket.onEvent(webSocketEvent);
 
   // 设置web服务器路由
-  server.on("/WIFIconfig", handleWIFI);
-  server.on("/MQTTconfig", handleMQTT);
-  server.on("/restart", handleRestart);
+  server.on("/WIFIconfig", handleWIFI);//处理WIFI表单上传
+  server.on("/MQTTconfig", handleMQTT);//处理MQTT配置表单上传
+  server.on("/restart", handleRestart);//处理重启请求
   server.on("/upload", HTTP_POST, handleFileUpload, handleUploadForm);  // 处理文件上传请求
   server.on("/update", HTTP_POST, handleFirmwareUpload, handleUpdateBin);  // 处理 OTA 请求
   server.onNotFound(handleUserRequet);  //处理没有匹配的处理程序的url
@@ -342,30 +342,31 @@ String actionPredict() {
       predictIndex = i;
     }
   }
-
-  // Serial.print("original frames:");
-  // Serial.println(actionRecord.size());
-  // Serial.print("input frames:");
-  // Serial.println(actionInput.size());
-  // for (SensorData frame : actionRecord) {
-  //   Serial.print(String(frame.Ax) + ",");
-  // }
-  // Serial.println();
-  // for (SensorData frame : actionInput) {
-  //   Serial.print(String(frame.Ax) + ",");
-  // }
-  // Serial.println();
-  // Serial.print("input dim:");
-  // Serial.println(idx);
-  // for (int i = 0; i < idx; i++) {
-  //   Serial.print(String(input_data[i]) + ",");
-  // }
-  // Serial.println();
-  // for (int i = 0; i < layer3; i++) {
-  //   Serial.print(output[i]);
-  //   Serial.print(", ");
-  // }
-  // Serial.println();
+/*
+  Serial.print("original frames:");
+  Serial.println(actionRecord.size());
+  Serial.print("input frames:");
+  Serial.println(actionInput.size());
+  for (SensorData frame : actionRecord) {
+    Serial.print(String(frame.Ax) + ",");
+  }
+  Serial.println();
+  for (SensorData frame : actionInput) {
+    Serial.print(String(frame.Ax) + ",");
+  }
+  Serial.println();
+  Serial.print("input dim:");
+  Serial.println(idx);
+  for (int i = 0; i < idx; i++) {
+    Serial.print(String(input_data[i]) + ",");
+  }
+  Serial.println();
+  for (int i = 0; i < layer3; i++) {
+    Serial.print(output[i]);
+    Serial.print(", ");
+  }
+  Serial.println();
+  */
 
   delete[] input_data;
   actionRecord.clear();
