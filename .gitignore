@@ -1,1 +1,2 @@
-train/models/*/*.*
+train/models/**
+train/__pycache__
